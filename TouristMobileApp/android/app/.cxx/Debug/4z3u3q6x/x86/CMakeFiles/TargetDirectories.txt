@@ -1,0 +1,12 @@
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/CMakeFiles/appmodules.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/CMakeFiles/edit_cache.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/CMakeFiles/rebuild_cache.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/RNCGeolocationSpec_autolinked_build/CMakeFiles/react_codegen_RNCGeolocationSpec.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/RNCGeolocationSpec_autolinked_build/CMakeFiles/edit_cache.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/RNCGeolocationSpec_autolinked_build/CMakeFiles/rebuild_cache.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/safeareacontext_autolinked_build/CMakeFiles/react_codegen_safeareacontext.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/safeareacontext_autolinked_build/CMakeFiles/edit_cache.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/safeareacontext_autolinked_build/CMakeFiles/rebuild_cache.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/RNCWebViewSpec_autolinked_build/CMakeFiles/react_codegen_RNCWebViewSpec.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/RNCWebViewSpec_autolinked_build/CMakeFiles/edit_cache.dir
+C:/Users/satad/Desktop/mobile/TouristMobileApp/android/app/.cxx/Debug/4z3u3q6x/x86/RNCWebViewSpec_autolinked_build/CMakeFiles/rebuild_cache.dir
