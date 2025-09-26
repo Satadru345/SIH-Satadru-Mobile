@@ -10,6 +10,7 @@ import {
   PermissionsAndroid,
   TouchableOpacity,
   ScrollView,
+  ImageBackground,
   FlatList,
   TouchableWithoutFeedback
 } from "react-native";
@@ -38,6 +39,9 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [trackingScreen, setTrackingScreen] = useState(false); // 🔹 new state for tracking screen
   const webviewRef = useRef<WebView>(null);
+  const [showHeatMap, setShowHeatMap] = useState(false);
+  const [heatMapData, setHeatMapData] = useState<[number, number, number][]>([]);
+
 
   const [watchId, setWatchId] = useState<number | null>(null);
   const [initialCoords, setInitialCoords] = useState<[number, number] | null>(null);
@@ -259,6 +263,23 @@ export default function App() {
     );
   };
 
+  const handleHeatMap = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/tourists/locations`);
+      const data = await res.json();
+      // convert to [lat, lng, intensity] format, intensity = 0.5 by default
+      const points = data
+        .filter((t: any) => t.latitude != null && t.longitude != null)
+        .map((t: any) => [parseFloat(t.latitude), parseFloat(t.longitude), 0.5]);
+      setHeatMapData(points);
+      setShowHeatMap(true);
+    } catch (err) {
+      console.error("Failed to fetch heat map data", err);
+      Alert.alert("Error", "Could not load heat map");
+    }
+  };
+
+
   // leaflet WebView HTML (connects to STOMP over SockJS)
   const mapHtml = `
   <!DOCTYPE html>
@@ -378,6 +399,42 @@ export default function App() {
   </html>
   `;
 
+  const heatMapHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <title>Heat Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style> html, body, #map { height: 100%; margin:0; padding:0; } </style>
+    </head>
+    <body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script>
+      var map = L.map('map').setView([22.5, 88.35], 11); // center on India by default
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+      var heat = L.heatLayer(${JSON.stringify(heatMapData)}, {
+        radius: 25,   // larger radius for smoother look
+        blur: 15,
+        maxZoom:3,
+        gradient: {
+          0.2: 'blue',
+          0.4: 'lime',
+          0.6: 'yellow',
+          0.8: 'orange',
+          1.0: 'red'
+        }
+      }).addTo(map);
+    </script>
+    </body>
+    </html>
+    `;
+
+
   // ===================== NEW: helper to send alert to backend =====================
   const sendAlert = async () => {
     if (!panicType) {
@@ -495,34 +552,85 @@ export default function App() {
 
   // ===================== UI routes / screens =====================
 
-  // LOGIN / REGISTER SCREEN
-  if (!loggedIn) {
-    return (
-      <SafeAreaView style={{ flex: 1, padding: 20, backgroundColor: '#add8e6' }}>
-        <Text style={[styles.header, { textAlign: 'center', fontSize: 26 }]}>TOURIST LOGIN</Text>
+  // LOGIN / REGISTER SCREEN - Aesthetic Version
+if (!loggedIn) {
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* Background Image */}
+      <ImageBackground
+        source={{ uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1350&q=80' }}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
+          {/* App Title */}
+          <Text style={{ fontSize: 36, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 40, fontFamily: Platform.OS === 'ios' ? 'AvenirNext-Bold' : 'sans-serif-condensed' }}>
+            SafeTrail
+          </Text>
 
-        <Text style={styles.label}>Enter username:</Text>
-        <TextInput placeholder="Username" value={username} onChangeText={setUsername} style={styles.input} />
+          {/* Username Input */}
+          <Text style={[styles.label, { color: '#fff', marginBottom: 6 }]}>Username</Text>
+          <TextInput
+            placeholder="Enter username"
+            placeholderTextColor="#eee"
+            value={username}
+            onChangeText={setUsername}
+            style={[styles.input, { backgroundColor: 'rgba(255,255,255,0.8)', color: '#000' }]}
+          />
 
-        <Text style={styles.label}>Enter password:</Text>
-        <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+          {/* Password Input */}
+          <Text style={[styles.label, { color: '#fff', marginBottom: 6 }]}>Password</Text>
+          <TextInput
+            placeholder="Enter password"
+            placeholderTextColor="#eee"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            style={[styles.input, { backgroundColor: 'rgba(255,255,255,0.8)', color: '#000' }]}
+          />
 
-        <Button title="Check / Login" onPress={handleLogin} />
+          {/* Login Button */}
+          <TouchableOpacity
+            onPress={handleLogin}
+            style={[styles.button, { backgroundColor: '#2ecc71', marginTop: 20 }]}
+          >
+            <Text style={styles.buttonText}>Check / Login</Text>
+          </TouchableOpacity>
 
-        {isNewUser && (
-          <>
-            <Text style={styles.label}>Enter full name:</Text>
-            <TextInput placeholder="Full name" value={name} onChangeText={setName} style={styles.input} />
+          {/* Register Form for New User */}
+          {isNewUser && (
+            <View style={{ marginTop: 20 }}>
+              <Text style={[styles.label, { color: '#fff' }]}>Full Name</Text>
+              <TextInput
+                placeholder="Enter full name"
+                placeholderTextColor="#eee"
+                value={name}
+                onChangeText={setName}
+                style={[styles.input, { backgroundColor: 'rgba(255,255,255,0.8)', color: '#000' }]}
+              />
 
-            <Text style={styles.label}>Enter tourist ID:</Text>
-            <TextInput placeholder="Tourist ID" value={touristId} onChangeText={setTouristId} style={styles.input} />
+              <Text style={[styles.label, { color: '#fff' }]}>Tourist ID</Text>
+              <TextInput
+                placeholder="Enter tourist ID"
+                placeholderTextColor="#eee"
+                value={touristId}
+                onChangeText={setTouristId}
+                style={[styles.input, { backgroundColor: 'rgba(255,255,255,0.8)', color: '#000' }]}
+              />
 
-            <Button title="Register & Start Tracking" onPress={handleRegister} />
-          </>
-        )}
-      </SafeAreaView>
-    );
-  }
+              <TouchableOpacity
+                onPress={handleRegister}
+                style={[styles.button, { backgroundColor: '#e67e22', marginTop: 20 }]}
+              >
+                <Text style={styles.buttonText}>Register & Start Tracking</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
+  );
+}
 
   // PANIC OPTIONS SCREEN
   if (showPanicOptions && !showPanicForm) {
@@ -657,38 +765,76 @@ export default function App() {
     );
   }
 
+  //heat map
+  if (showHeatMap) {
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ padding: 12, backgroundColor: '#3498db' }}>
+        <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>Heat Map</Text>
+      </View>
+
+      <WebView
+        key={`heatmap-${Date.now()}`}
+        originWhitelist={['*']}
+        source={{ html: heatMapHtml }}
+        style={{ flex: 1 }}
+        javaScriptEnabled
+        domStorageEnabled
+      />
+
+      <TouchableOpacity
+        style={[styles.button, { margin: 12, backgroundColor: '#95a5a6' }]}
+        onPress={() => setShowHeatMap(false)}
+      >
+        <Text style={styles.buttonText}>Back</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+}
+
+
   // HOME SCREEN AFTER LOGIN
-  if (!trackingScreen) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#add8e6' }}>
-        <View style={{ padding: 20, alignItems: 'center', justifyContent: 'center', flex: 1, backgroundColor: '#add8e6' }}>
-          <Text style={{ fontSize: 24, fontWeight: '700', marginBottom: 20 }}>Welcome, {profile?.name}!</Text>
-          <Text style={{ fontSize: 18, color: '#555', marginBottom: 20 }}>Tourist ID: {profile?.touristId}</Text>
+if (!trackingScreen) {
+  return (
+    <ImageBackground
+      source={{ uri: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80' }} // waterfall-only image
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' }}> 
+        {/* dark overlay for text contrast */}
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          
+          <Text style={{ fontSize: 32, fontWeight: '800', color: '#fff', marginBottom: 10, textShadowColor: '#000', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 5 }}>
+            Welcome, {profile?.name}!
+          </Text>
+          <Text style={{ fontSize: 20, color: '#fff', marginBottom: 30, textShadowColor: '#000', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 5 }}>
+            Tourist ID: {profile?.touristId}
+          </Text>
 
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, { backgroundColor: '#3498db', width: '80%', paddingVertical: 16, marginBottom: 12 }]}
             onPress={() => { startLocationWatch(); setTrackingScreen(true); }}
           >
             <Text style={styles.buttonText}>Real Time Tracking</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: '#e74c3c' }]}
+            style={[styles.button, { backgroundColor: '#e74c3c', width: '80%', paddingVertical: 16, marginBottom: 12 }]}
             onPress={() => setShowPanicOptions(true)}
           >
             <Text style={styles.buttonText}>Panic Button</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: '#9b59b6' }]} // purple for Heat Map
-            onPress={() => Alert.alert("Heat Map", "Heat Map feature coming soon!")}
+            style={[styles.button, { backgroundColor: '#9b59b6', width: '80%', paddingVertical: 16, marginBottom: 12 }]}
+            onPress={handleHeatMap}
           >
             <Text style={styles.buttonText}>Heat Map</Text>
           </TouchableOpacity>
 
-          {/* NEW: Generated E-FIR Button */}
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: '#16a085' }]}
+            style={[styles.button, { backgroundColor: '#16a085', width: '80%', paddingVertical: 16, marginTop: 12 }]}
             onPress={() => setShowEfirList(true)}
           >
             <Text style={styles.buttonText}>Generated E-FIR</Text>
@@ -696,8 +842,9 @@ export default function App() {
 
         </View>
       </SafeAreaView>
-    );
-  }
+    </ImageBackground>
+  );
+}
 
   // TRACKING SCREEN (leave map unchanged)
   return (
